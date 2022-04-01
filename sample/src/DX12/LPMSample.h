@@ -18,52 +18,61 @@
 // THE SOFTWARE.
 #pragma once
 
-#include "base/FrameworkWindows.h"
-#include "Renderer.h"
-#include "UI.h"
+#include "SampleRenderer.h"
 
-// This class encapsulates the 'application' and is responsible for handling window events and scene updates (simulation)
-// Rendering and rendering resource management is done by the Renderer class
+
+//
+// This is the main class, it manages the state of the sample and does all the high level work without touching the GPU directly.
+// This class uses the GPU via the the SampleRenderer class. We would have a SampleRenderer instance for each GPU.
+//
+// This class takes care of:
+//
+//    - loading a scene (just the CPU data)
+//    - updating the camera
+//    - keeping track of time
+//    - handling the keyboard
+//    - updating the animation
+//    - building the UI (but do not renders it)
+//    - uses the SampleRenderer to update all the state to the GPU and do the rendering
+//
 
 class LPMSample : public FrameworkWindows
 {
 public:
     LPMSample(LPCSTR name);
-    void OnParseCommandLine(LPSTR lpCmdLine, uint32_t* pWidth, uint32_t* pHeight) override;
-    void OnCreate() override;
-    void OnDestroy() override;
-    void OnRender() override;
-    bool OnEvent(MSG msg) override;
-    void OnResize() override;
-    void OnUpdateDisplay() override;
-
-    void BuildUI();
-    void LoadScene(int sceneIndex);
-
-    void OnUpdate();
-
-    void HandleInput(const ImGuiIO& io);
-    void UpdateCamera(Camera& cam, const ImGuiIO& io);
-
+    void OnParseCommandLine(LPSTR lpCmdLine, uint32_t* pWidth, uint32_t* pHeight, bool* pbFullScreen);
+    void OnCreate(HWND hWnd);
+    void OnDestroy();
+    void OnRender();
+    bool OnEvent(MSG msg);
+    void OnResize(uint32_t Width, uint32_t Height);
+    void OnActivate(bool windowActive);
+    void SetFullScreen(bool fullscreen);
+    
 private:
 
-    bool                        m_bIsBenchmarking;
+    Device m_device;
+    SwapChain m_swapChain;
 
-    GLTFCommon                 *m_pGltfLoader = NULL;
-    bool                        m_loadingScene = false;
+    DisplayModes m_previousDisplayMode;
+    DisplayModes m_currentDisplayMode;
+    DisplayModes m_previousDisplayModeNamesIndex;
+    DisplayModes m_currentDisplayModeNamesIndex;
+    std::vector<DisplayModes> m_displayModesAvailable;
+    std::vector<const char *> m_displayModesNamesAvailable;
+    bool m_disableLocalDimming;
 
-    Renderer                   *m_pRenderer = NULL;
-    UIState                     m_UIState;
-    float                       m_fontSize;
-    Camera                      m_camera;
+    GLTFCommon *m_pGltfLoader;
 
-    float                       m_time; // Time accumulator in seconds, used for animation.
+    SampleRenderer *m_Node;
+    SampleRenderer::State m_state;
 
-    // json config file
-    json                        m_jsonConfigFile;
-    std::vector<std::string>    m_sceneNames;
-    int                         m_activeScene;
-    int                         m_activeCamera;
+    float m_time;
+    double m_deltaTime;        // The elapsed time since the previous frame.
+    double m_lastFrameTime;
 
-    bool                        m_bPlay;
+    bool m_isCpuValidationLayerEnabled = false;
+    bool m_isGpuValidationLayerEnabled = false;
+
+    bool m_bPlay;
 };

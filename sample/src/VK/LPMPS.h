@@ -30,15 +30,7 @@ namespace CAULDRON_VK
         void OnCreate(Device* pDevice, VkRenderPass renderPass, ResourceViewHeaps *pResourceViewHeaps, StaticBufferPool  *pStaticBufferPool, DynamicBufferRing *pDynamicBufferRing);
         void OnDestroy();
 
-        void UpdatePipelines(VkRenderPass renderPass, DisplayMode displayMode, ColorSpace colorSpace,
-            bool shoulder,
-            float softGap,
-            float hdrMax,
-            float lpmExposure,
-            float contrast,
-            float shoulderContrast,
-            float saturation[3],
-            float crosstalk[3]);
+        void UpdatePipelines(VkRenderPass renderPass, DisplayModes displayMode, ColorSpace colorSpace);
 
         void Draw(VkCommandBuffer cmd_buf, VkImageView HDRSRV);
 
@@ -84,8 +76,8 @@ namespace CAULDRON_VK
         VkDescriptorSet       m_descriptorSet[s_descriptorBuffers];
         VkDescriptorSetLayout m_descriptorSetLayout;
 
-        DisplayMode m_displayMode;
-        math::Matrix4 m_inputToOutputMatrix;
+        DisplayModes m_displayMode;
+        XMMATRIX m_inputToOutputMatrix;
 
         struct LPMConsts {
             UINT shoulder;
@@ -96,7 +88,7 @@ namespace CAULDRON_VK
             UINT scaleOnly;
             UINT displayMode;
             UINT pad;
-            math::Matrix4 inputToOutputMatrix;
+            XMMATRIX inputToOutputMatrix;
             uint32_t ctl[24 * 4];
         };
     };

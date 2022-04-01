@@ -31,7 +31,7 @@ namespace CAULDRON_VK
         DynamicBufferRing *pDynamicBufferRing,
         StaticBufferPool *pStaticBufferPool,
         VkSampleCountFlagBits sampleDescCount,
-        UINT numRows, UINT numColms, std::string flipBookAnimationTexture, math::Matrix4 worldMatrix)
+        UINT numRows, UINT numColms, std::string flipBookAnimationTexture, XMMATRIX worldMatrix)
     {
         m_pDevice = pDevice;
         m_pResourceViewHeaps = pResourceViewHeaps;
@@ -54,10 +54,10 @@ namespace CAULDRON_VK
         float vertices[] =
         {
             // pos                      // uv
-            -1.0f,  1.0f, 0.0f, 1.0f,   0.0f, 0.0f,
-             1.0f,  1.0f, 0.0f, 1.0f,   1.0f, 0.0f,
-             1.0f, -1.0f, 0.0f, 1.0f,   1.0f, 1.0f,
-            -1.0f, -1.0f, 0.0f, 1.0f,   0.0f, 1.0f
+            -1.0f,  1.0f, 0.0f, 1.0f,	0.0f, 0.0f,
+             1.0f,  1.0f, 0.0f, 1.0f,	1.0f, 0.0f,
+             1.0f, -1.0f, 0.0f, 1.0f,	1.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f, 1.0f,	0.0f, 1.0f
         };
         m_pStaticBufferPool->AllocBuffer(24, 6 * sizeof(float), vertices, &m_VBV);
 
@@ -309,7 +309,7 @@ namespace CAULDRON_VK
         vkDestroySampler(m_pDevice->GetDevice(), m_sampler, nullptr);
     }
 
-    void FlipBookAnimation::Draw(VkCommandBuffer cmd_buf, float time, math::Vector4 camPos, math::Matrix4 viewProjMat)
+    void FlipBookAnimation::Draw(VkCommandBuffer cmd_buf, float time, XMVECTOR camPos, XMMATRIX viewProjMat)
     {
         VkDescriptorBufferInfo cbFlipBookAnimation;
         FlipBookAnimationCBuffer *pFlipBookAnimation;
@@ -318,8 +318,9 @@ namespace CAULDRON_VK
         pFlipBookAnimation->cols = m_numColms;
         pFlipBookAnimation->time = time;
 
-        math::Vector4 dist = camPos - m_worldMatrix.getCol3();
-        float angle = atan2(dist.getX(), dist.getZ());
+        XMFLOAT4 dist;
+        XMStoreFloat4(&dist, camPos - m_worldMatrix.r[3]);
+        float angle = atan2(dist.x, dist.z);
 
         pFlipBookAnimation->angle = -angle;
         pFlipBookAnimation->camPos = camPos;
@@ -336,5 +337,5 @@ namespace CAULDRON_VK
         vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
 
         vkCmdDrawIndexed(cmd_buf, m_NumIndices, 1, 0, 0, 0);
-    }
+	}
 }
